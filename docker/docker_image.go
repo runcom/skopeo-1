@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/projectatomic/skopeo/directory"
 	"github.com/projectatomic/skopeo/docker/utils"
 	"github.com/projectatomic/skopeo/types"
@@ -27,7 +29,7 @@ type dockerImage struct {
 
 // NewDockerImage returns a new Image interface type after setting up
 // a client to the registry hosting the given image.
-func NewDockerImage(img, certPath string, tlsVerify bool) (types.Image, error) {
+func NewDockerImage(ctx context.Context, img, certPath string, tlsVerify bool) (types.Image, error) {
 	s, err := newDockerImageSource(img, certPath, tlsVerify)
 	if err != nil {
 		return nil, err

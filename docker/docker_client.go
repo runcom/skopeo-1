@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/distribution/context"
 	"github.com/docker/docker/pkg/homedir"
 )
 
@@ -34,6 +35,7 @@ const (
 
 // dockerClient is configuration for dealing with a single Docker registry.
 type dockerClient struct {
+	ctx             context.Context
 	registry        string
 	username        string
 	password        string
@@ -43,7 +45,7 @@ type dockerClient struct {
 }
 
 // newDockerClient returns a new dockerClient instance for refHostname (a host a specified in the Docker image reference, not canonicalized to dockerRegistry)
-func newDockerClient(refHostname, certPath string, tlsVerify bool) (*dockerClient, error) {
+func newDockerClient(ctx context.Context, refHostname, certPath string, tlsVerify bool) (*dockerClient, error) {
 	var registry string
 	if refHostname == dockerHostname {
 		registry = dockerRegistry
@@ -71,6 +73,7 @@ func newDockerClient(refHostname, certPath string, tlsVerify bool) (*dockerClien
 		}
 	}
 	return &dockerClient{
+		ctx:       ctx,
 		registry:  registry,
 		username:  username,
 		password:  password,

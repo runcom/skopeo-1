@@ -42,6 +42,7 @@ func parseImageSource(c *cli.Context, name string) (types.ImageSource, error) {
 		certPath  = c.GlobalString("cert-path")
 		tlsVerify = c.GlobalBool("tls-verify") // FIXME!! defaults to false?
 	)
+	// TODO(runcom): configure context with logger and pass it to New...
 	switch {
 	case strings.HasPrefix(name, dockerPrefix):
 		return docker.NewDockerImageSource(strings.TrimPrefix(name, dockerPrefix), certPath, tlsVerify)
