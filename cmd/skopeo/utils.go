@@ -35,8 +35,10 @@ func parseImage(c *cli.Context) (types.Image, error) {
 		//case strings.HasPrefix(img, appcPrefix):
 		//
 	case strings.HasPrefix(imgName, directoryPrefix):
-		src := directory.NewDirImageSource(strings.TrimPrefix(imgName, directoryPrefix))
-		return image.FromSource(src), nil
+		if c.GlobalBool("debug") {
+			src := directory.NewDirImageSource(strings.TrimPrefix(imgName, directoryPrefix))
+			return image.FromSource(src), nil
+		}
 	}
 	return nil, errors.New("no valid prefix provided")
 }
@@ -53,7 +55,9 @@ func parseImageSource(c *cli.Context, name string) (types.ImageSource, error) {
 	case strings.HasPrefix(name, atomicPrefix):
 		return openshift.NewOpenshiftImageSource(strings.TrimPrefix(name, atomicPrefix), certPath, tlsVerify)
 	case strings.HasPrefix(name, directoryPrefix):
-		return directory.NewDirImageSource(strings.TrimPrefix(name, directoryPrefix)), nil
+		if c.GlobalBool("debug") {
+			return directory.NewDirImageSource(strings.TrimPrefix(name, directoryPrefix)), nil
+		}
 	}
 	return nil, fmt.Errorf("Unrecognized image reference %s", name)
 }
@@ -70,7 +74,9 @@ func parseImageDestination(c *cli.Context, name string) (types.ImageDestination,
 	case strings.HasPrefix(name, atomicPrefix):
 		return openshift.NewOpenshiftImageDestination(strings.TrimPrefix(name, atomicPrefix), certPath, tlsVerify)
 	case strings.HasPrefix(name, directoryPrefix):
-		return directory.NewDirImageDestination(strings.TrimPrefix(name, directoryPrefix)), nil
+		if c.GlobalBool("debug") {
+			return directory.NewDirImageDestination(strings.TrimPrefix(name, directoryPrefix)), nil
+		}
 	}
 	return nil, fmt.Errorf("Unrecognized image reference %s", name)
 }

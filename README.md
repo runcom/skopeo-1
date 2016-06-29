@@ -53,7 +53,7 @@ and local directories:
 
 ```sh
 $ skopeo copy docker://busybox:1-glibc atomic:myns/unsigned:streaming
-$ skopeo copy docker://busybox:latest dir:existingemptydirectory
+$ skopeo copy docker://busybox:latest oci:oci-image-layout-directory
 ```
 
 Deleting images
