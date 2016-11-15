@@ -11,7 +11,7 @@ import (
 	"hash"
 	"io"
 	"io/ioutil"
-	"reflect"
+	"net/http"
 	"strings"
 
 	pb "gopkg.in/cheggaaa/pb.v1"
@@ -168,16 +168,16 @@ func Image(ctx *types.SystemContext, policyContext *signature.PolicyContext, des
 	}
 
 	pendingImage := src
-	if !reflect.DeepEqual(manifestUpdates, types.ManifestUpdateOptions{InformationOnly: manifestUpdates.InformationOnly}) {
-		if !canModifyManifest {
-			return fmt.Errorf("Internal error: copy needs an updated manifest but that was known to be forbidden")
-		}
-		manifestUpdates.InformationOnly.Destination = dest
-		pendingImage, err = src.UpdatedImage(manifestUpdates)
-		if err != nil {
-			return fmt.Errorf("Error creating an updated image manifest: %v", err)
-		}
-	}
+	//if !reflect.DeepEqual(manifestUpdates, types.ManifestUpdateOptions{InformationOnly: manifestUpdates.InformationOnly}) {
+	//if !canModifyManifest {
+	//return fmt.Errorf("Internal error: copy needs an updated manifest but that was known to be forbidden")
+	//}
+	//manifestUpdates.InformationOnly.Destination = dest
+	//pendingImage, err = src.UpdatedImage(manifestUpdates)
+	//if err != nil {
+	//return fmt.Errorf("Error creating an updated image manifest: %v", err)
+	//}
+	//}
 	manifest, _, err := pendingImage.Manifest()
 	if err != nil {
 		return fmt.Errorf("Error reading manifest: %v", err)
@@ -241,6 +241,11 @@ func copyLayers(manifestUpdates *types.ManifestUpdateOptions, dest types.ImageDe
 		cl, ok := copiedLayers[srcLayer.Digest]
 		if !ok {
 			fmt.Fprintf(reportWriter, "Copying blob %s\n", srcLayer.Digest)
+			//if dest.CopyForeignLayers() && len(srcLayer.URLs) != 0 {
+			if !dest.CopyForeignLayers() && len(srcLayer.URLs) != 0 {
+				fmt.Fprintf(reportWriter, "Skipping foreign layer copy to %s\n", dest.Reference().Transport().Name())
+				continue
+			}
 			destInfo, diffID, err := copyLayer(dest, rawSource, srcLayer, diffIDsAreNeeded, canModifyManifest, reportWriter)
 			if err != nil {
 				return err
@@ -301,11 +306,33 @@ type diffIDResult struct {
 	err    error
 }
 
+func getBlob(src types.ImageSource, srcInfo types.BlobInfo) (io.ReadCloser, int64, error) {
+	if len(srcInfo.URLs) == 0 {
+		return src.GetBlob(srcInfo.Digest)
+	}
+	var (
+		resp *http.Response
+		err  error
+	)
+	for _, url := range srcInfo.URLs {
+		resp, err = http.Get(url)
+		if err == nil {
+			if resp.StatusCode == http.StatusOK {
+				break
+			}
+		}
+	}
+	if resp.Body != nil {
+		return resp.Body, -1, err // size is unknown
+	}
+	return nil, -1, err //size is unknown
+}
+
 // copyLayer copies a layer with srcInfo (with known Digest and possibly known Size) in src to dest, perhaps compressing it if canCompress,
 // and returns a complete blobInfo of the copied layer, and a value for LayerDiffIDs if diffIDIsNeeded
 func copyLayer(dest types.ImageDestination, src types.ImageSource, srcInfo types.BlobInfo,
 	diffIDIsNeeded bool, canCompress bool, reportWriter io.Writer) (types.BlobInfo, string, error) {
-	srcStream, srcBlobSize, err := src.GetBlob(srcInfo.Digest) // We currently completely ignore srcInfo.Size throughout.
+	srcStream, srcBlobSize, err := getBlob(src, srcInfo) // We currently completely ignore srcInfo.Size throughout.
 	if err != nil {
 		return types.BlobInfo{}, "", fmt.Errorf("Error reading blob %s: %v", srcInfo.Digest, err)
 	}

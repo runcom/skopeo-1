@@ -93,6 +93,7 @@ type ImageReference interface {
 type BlobInfo struct {
 	Digest string // "" if unknown.
 	Size   int64  // -1 if unknown
+	URLs   []string
 }
 
 // ImageSource is a service, possibly remote (= slow), to download components of a single image.
@@ -143,6 +144,10 @@ type ImageDestination interface {
 	SupportsSignatures() error
 	// ShouldCompressLayers returns true iff it is desirable to compress layer blobs written to this destination.
 	ShouldCompressLayers() bool
+
+	// CopyForeignLayers returns true iff foreign layers in manifest should be actually
+	// uploaded to the image destination, false otherwise.
+	CopyForeignLayers() bool
 
 	// PutBlob writes contents of stream and returns data representing the result (with all data filled in).
 	// inputInfo.Digest can be optionally provided if known; it is not mandatory for the implementation to verify it.

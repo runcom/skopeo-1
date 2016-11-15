@@ -53,6 +53,12 @@ func (d *ociImageDestination) ShouldCompressLayers() bool {
 	return false
 }
 
+// CopyForeignLayers returns true iff foreign layers in manifest should be actually
+// uploaded to the image destination, false otherwise.
+func (d *ociImageDestination) CopyForeignLayers() bool {
+	return false
+}
+
 // PutBlob writes contents of stream and returns data representing the result (with all data filled in).
 // inputInfo.Digest can be optionally provided if known; it is not mandatory for the implementation to verify it.
 // inputInfo.Size is the expected length of stream, if known.
@@ -122,8 +128,13 @@ func createManifest(m []byte) ([]byte, string, error) {
 			return nil, "", err
 		}
 		om.MediaType = imgspecv1.MediaTypeImageManifest
-		for i := range om.Layers {
+		for i, l := range om.Layers {
+			//if len(l.URLs) != 0 {
+			//om.Layers[i].MediaType = imgspecv1.MediaTypeImageLayerNonDistributable
+			//} else {
+			_ = l
 			om.Layers[i].MediaType = imgspecv1.MediaTypeImageLayer
+			//}
 		}
 		om.Config.MediaType = imgspecv1.MediaTypeImageConfig
 		b, err := json.Marshal(om)

@@ -27,9 +27,10 @@ var gzippedEmptyLayer = []byte{
 const gzippedEmptyLayerDigest = "sha256:a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4"
 
 type descriptor struct {
-	MediaType string `json:"mediaType"`
-	Size      int64  `json:"size"`
-	Digest    string `json:"digest"`
+	MediaType string   `json:"mediaType"`
+	Size      int64    `json:"size"`
+	Digest    string   `json:"digest"`
+	URLs      []string `json:"urls,omitempty"`
 }
 
 type manifestSchema2 struct {
@@ -107,7 +108,11 @@ func (m *manifestSchema2) ConfigBlob() ([]byte, error) {
 func (m *manifestSchema2) LayerInfos() []types.BlobInfo {
 	blobs := []types.BlobInfo{}
 	for _, layer := range m.LayersDescriptors {
-		blobs = append(blobs, types.BlobInfo{Digest: layer.Digest, Size: layer.Size})
+		blobs = append(blobs, types.BlobInfo{
+			Digest: layer.Digest,
+			Size:   layer.Size,
+			URLs:   layer.URLs,
+		})
 	}
 	return blobs
 }
@@ -143,7 +148,7 @@ func (m *manifestSchema2) UpdatedImage(options types.ManifestUpdateOptions) (typ
 	copy := *m // NOTE: This is not a deep copy, it still shares slices etc.
 	if options.LayerInfos != nil {
 		if len(copy.LayersDescriptors) != len(options.LayerInfos) {
-			return nil, fmt.Errorf("Error preparing updated manifest: layer count changed from %d to %d", len(copy.LayersDescriptors), len(options.LayerInfos))
+			//return nil, fmt.Errorf("Error preparing updated manifest: layer count changed from %d to %d", len(copy.LayersDescriptors), len(options.LayerInfos))
 		}
 		copy.LayersDescriptors = make([]descriptor, len(options.LayerInfos))
 		for i, info := range options.LayerInfos {

@@ -67,6 +67,12 @@ func (d *dockerImageDestination) ShouldCompressLayers() bool {
 	return true
 }
 
+// CopyForeignLayers returns true iff foreign layers in manifest should be actually
+// uploaded to the image destination, false otherwise.
+func (d *dockerImageDestination) CopyForeignLayers() bool {
+	return false
+}
+
 // sizeCounter is an io.Writer which only counts the total size of its input.
 type sizeCounter struct{ size int64 }
 

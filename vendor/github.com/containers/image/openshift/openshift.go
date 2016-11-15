@@ -347,6 +347,12 @@ func (d *openshiftImageDestination) ShouldCompressLayers() bool {
 	return true
 }
 
+// CopyForeignLayers returns true iff foreign layers in manifest should be actually
+// uploaded to the image destination, false otherwise.
+func (d *openshiftImageDestination) CopyForeignLayers() bool {
+	return false
+}
+
 // PutBlob writes contents of stream and returns data representing the result (with all data filled in).
 // inputInfo.Digest can be optionally provided if known; it is not mandatory for the implementation to verify it.
 // inputInfo.Size is the expected length of stream, if known.
