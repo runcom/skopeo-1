@@ -231,6 +231,8 @@ CONTRIBUTING
 
 ### Dependencies management
 
+### TODO(runcom): switch to go mod
+
 Make sure [`vndr`](https://github.com/LK4D4/vndr) is installed.
 
 In order to add a new dependency to this project:
